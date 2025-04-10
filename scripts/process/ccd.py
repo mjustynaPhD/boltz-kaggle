@@ -1,7 +1,7 @@
 """Compute conformers and symmetries for all the CCD molecules."""
-
 import argparse
 import multiprocessing
+import os
 import pickle
 import sys
 from functools import partial
@@ -13,31 +13,34 @@ from p_tqdm import p_uimap
 from pdbeccdutils.core import ccd_reader
 from pdbeccdutils.core.component import ConformerType
 from rdkit import rdBase
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, MolFromPDBFile
 from rdkit.Chem.rdchem import Conformer, Mol
 from tqdm import tqdm
 
 
-def load_molecules(components: str) -> list[Mol]:
-    """Load the CCD components file.
+def load_molecules(pdbs: str) -> list[Mol]:
+    """Load RNA pdb files.
 
     Parameters
     ----------
-    components : str
-        Path to the CCD components file.
+    pdbs : str
+        Path to the PDBs directory
 
     Returns
     -------
     list[Mol]
 
     """
-    components: dict[str, ccd_reader.CCDReaderResult]
-    components = ccd_reader.read_pdb_components_file(components)
-
     mols = []
-    for name, component in components.items():
-        mol = component.component.mol
-        mol.SetProp("PDB_NAME", name)
+    files = os.listdir(pdbs)
+    files = [p for p in files if p.endswith(".pdb")]
+    for pdb in tqdm(files):
+        d = Path(pdbs) / pdb
+        mol = MolFromPDBFile(d, removeHs=False, sanitize=False)
+        if mol is None:
+            print(f"Dir: {d} is None")
+            continue
+        mol.SetProp("PDB_NAME", pdb.replace(".pdb", ""))
         mols.append(mol)
 
     return mols
@@ -73,11 +76,12 @@ def compute_3d(mol: Mol, version: str = "v3") -> bool:
 
     try:
         conf_id = rdkit.Chem.AllChem.EmbedMolecule(mol, options)
-        rdkit.Chem.AllChem.UFFOptimizeMolecule(mol, confId=conf_id, maxIters=1000)
+        rdkit.Chem.AllChem.UFFOptimizeMolecule(mol, confId=conf_id, maxIters=1000) # originally 1000
 
     except RuntimeError:
         pass  # Force field issue here
     except ValueError:
+        # print("Error sanitization")
         pass  # sanitization issue here
 
     if conf_id != -1:
@@ -121,6 +125,7 @@ def get_conformer(mol: Mol, c_type: ConformerType) -> Conformer:
             pass
 
     msg = f"Conformer {c_type.name} does not exist."
+    print(msg)
     raise ValueError(msg)
 
 
@@ -186,6 +191,10 @@ def process(mol: Mol, output: str) -> tuple[str, str]:
     """
     # Get name
     name = mol.GetProp("PDB_NAME")
+    path = Path(output) / f"{name}.pkl"
+    if path.exists():
+        print(f"Skipping {name}, already exists")
+        return name, "exists"
 
     # Check if single atom
     if mol.GetNumAtoms() == 1:
@@ -203,7 +212,8 @@ def process(mol: Mol, output: str) -> tuple[str, str]:
             else:
                 _ = get_conformer(mol, ConformerType.Ideal)
                 result = "ideal"
-        except ValueError:
+        except ValueError as e:
+            print(f"{e}")
             result = "failed"
 
     # Dump the molecule
@@ -222,7 +232,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Load components
     print("Loading components")  # noqa: T201
-    molecules = load_molecules(args.components)
+    molecules = load_molecules(args.pdbs_dir)
 
     # Reset stdout and stderr, as pdbccdutils messes with them
     sys.stdout = sys.__stdout__
@@ -244,6 +254,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Check if we can run in parallel
     max_processes = multiprocessing.cpu_count()
+    # max_processes= 1
     num_processes = max(1, min(args.num_processes, max_processes, len(molecules)))
     parallel = num_processes > 1
 
@@ -284,7 +295,7 @@ def main(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--components", type=str)
+    parser.add_argument("--pdbs-dir", type=str)
     parser.add_argument("--outdir", type=str)
     parser.add_argument(
         "--num_processes",
