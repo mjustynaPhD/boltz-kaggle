@@ -1,3 +1,7 @@
+# preprocessing
+scripts/process/ccd/*
+boltz_results_ligand/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
