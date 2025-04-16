@@ -88,6 +88,7 @@ model:
   ligand_rmsd_weight: 10.0
   ema: true
   ema_decay: 0.999
+  alpha_pae: 0.1 # by default 0.0
 
   embedder_args:
     atom_encoder_depth: 3
@@ -123,7 +124,8 @@ model:
     activation_checkpointing: true
     offload_to_cpu: false
 
-  confidence_prediction: false
+  confidence_prediction: true
+  confidence_imitate_trunk: true # added missing param
   confidence_model_args:
     num_dist_bins: 64
     max_dist: 22

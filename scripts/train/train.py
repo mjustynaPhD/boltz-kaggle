@@ -1,10 +1,10 @@
 import os
+import random
 import string
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-import random
 
 import hydra
 import omegaconf
