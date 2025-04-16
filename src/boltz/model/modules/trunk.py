@@ -1,8 +1,10 @@
 from typing import Dict, Tuple
 
-from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
 import torch
+from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
+from rinalmo.pretrained import get_pretrained_model
 from torch import Tensor, nn
+from torch.nn import Linear, Module
 
 from boltz.data import const
 from boltz.model.layers.attention import AttentionPairBias
@@ -19,6 +21,44 @@ from boltz.model.layers.triangular_mult import (
     TriangleMultiplicationOutgoing,
 )
 from boltz.model.modules.encoders import AtomAttentionEncoder
+
+
+class SequenceEmbedder(nn.Module):
+    """"Sequence embedder using RiNALMo model to generate RNA residue embeddings."""
+
+    def __init__(self, res_emb_dim: int) -> None:
+        """
+        Initialize the sequence embedder.
+
+        Parameters
+        ----------
+        res_emb_dim : int
+            The residue embedding dimension.
+        """
+        super().__init__()
+        self.res_emb_dim = res_emb_dim
+        self.model, _ = get_pretrained_model(model_name="giga-v1")
+        self.linear = Linear(1280, res_emb_dim, bias=False)
+
+    def forward(self, tokens: Tensor) -> Tensor:
+        """Perform the forward pass.
+
+        Parameters
+        ----------
+        tokens : Tensor
+            The input tokens.
+
+        Returns
+        -------
+        Tensor
+            The embedded tokens.
+
+        """
+        tokens = tokens.squeeze(1) # shape: (batch_size, 1, 242, 3480) -> (batch_size, 242, 3480)
+        self.model.eval()
+        with torch.no_grad(), torch.cuda.amp.autocast():
+            outputs = self.model(tokens)
+        return self.linear(outputs["representation"])
 
 
 class InputEmbedder(nn.Module):

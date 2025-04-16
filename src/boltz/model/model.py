@@ -32,6 +32,7 @@ from boltz.model.modules.trunk import (
     InputEmbedder,
     MSAModule,
     PairformerModule,
+    SequenceEmbedder,
 )
 from boltz.model.modules.utils import ExponentialMovingAverage
 from boltz.model.optim.scheduler import AlphaFoldLRScheduler
@@ -178,24 +179,26 @@ class Boltz1(LightningModule):
         init.gating_init_(self.z_recycle.weight)
 
         # Pairwise stack
-        self.no_msa = no_msa
-        if not no_msa:
-            self.msa_module = MSAModule(
-                token_z=token_z,
-                s_input_dim=s_input_dim,
-                **msa_args,
-            )
-        self.pairformer_module = PairformerModule(token_s, token_z, **pairformer_args)
-        if compile_pairformer:
-            # Big models hit the default cache limit (8)
-            self.is_pairformer_compiled = True
-            torch._dynamo.config.cache_size_limit = 512
-            torch._dynamo.config.accumulated_cache_size_limit = 512
-            self.pairformer_module = torch.compile(
-                self.pairformer_module,
-                dynamic=False,
-                fullgraph=False,
-            )
+        # self.no_msa = no_msa
+        # if not no_msa:
+        #     self.msa_module = MSAModule(
+        #         token_z=token_z,
+        #         s_input_dim=s_input_dim,
+        #         **msa_args,
+        #     )
+        # self.pairformer_module = PairformerModule(token_s, token_z, **pairformer_args)
+        # if compile_pairformer:
+        #     # Big models hit the default cache limit (8)
+        #     self.is_pairformer_compiled = True
+        #     torch._dynamo.config.cache_size_limit = 512
+        #     torch._dynamo.config.accumulated_cache_size_limit = 512
+        #     self.pairformer_module = torch.compile(
+        #         self.pairformer_module,
+        #         dynamic=False,
+        #         fullgraph=False,
+        #     )
+
+        self.seq_embedder = SequenceEmbedder(token_z)
 
         # Output modules
         use_accumulate_token_repr = confidence_prediction and "use_s_diffusion" in confidence_model_args and confidence_model_args["use_s_diffusion"]
@@ -298,18 +301,22 @@ class Boltz1(LightningModule):
                     # Apply recycling
                     s = s_init + self.s_recycle(self.s_norm(s))
                     z = z_init + self.z_recycle(self.z_norm(z))
+                    
+
+                    # Here goes RNA-language model
+                    # z = z + self.rna_language_model(z, s_inputs, feats)
 
                     # Compute pairwise stack
-                    if not self.no_msa:
-                        z = z + self.msa_module(z, s_inputs, feats)
+                    # if not self.no_msa:
+                    #     z = z + self.msa_module(z, s_inputs, feats)
 
-                    # Revert to uncompiled version for validation
-                    if self.is_pairformer_compiled and not self.training:
-                        pairformer_module = self.pairformer_module._orig_mod  # noqa: SLF001
-                    else:
-                        pairformer_module = self.pairformer_module
+                    # # Revert to uncompiled version for validation
+                    # if self.is_pairformer_compiled and not self.training:
+                    #     pairformer_module = self.pairformer_module._orig_mod  # noqa: SLF001
+                    # else:
+                    #     pairformer_module = self.pairformer_module
 
-                    s, z = pairformer_module(s, z, mask=mask, pair_mask=pair_mask)
+                    # s, z = pairformer_module(s, z, mask=mask, pair_mask=pair_mask)
 
             pdistogram = self.distogram_module(z)
             dict_out = {"pdistogram": pdistogram}
