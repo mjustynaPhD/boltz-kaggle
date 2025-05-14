@@ -589,7 +589,6 @@ def parse_polymer(  # noqa: C901, PLR0915, PLR0912
     """
     # Get unknown chirality token
     unk_chirality = const.chirality_type_ids[const.unk_chirality_type]
-
     # Ignore microheterogenities (pick first)
     sequence = [gemmi.Entity.first_mon(item) for item in sequence]
 
@@ -853,6 +852,8 @@ def parse_mmcif(  # noqa: C901, PLR0915, PLR0912
 
     # Parse MMCIF input file
     block = gemmi.cif.read(str(path))[0]
+    
+    # block = gemmi.read_structure(str(path))
 
     # Extract medatadata
     deposit_date, release_date, revision_date = get_dates(block)

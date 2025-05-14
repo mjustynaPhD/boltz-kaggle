@@ -29,6 +29,9 @@ dependencies = [
     "biopython==1.84",
     "scipy==1.13.1",
     "numba==0.61.0",
+    "rnapolis>=0.8.2",
+    "scikit-learn>=1.6.1",
+    "gemmi==0.6.4",
 ]
 
 [project.scripts]

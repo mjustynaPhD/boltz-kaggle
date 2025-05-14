@@ -12,7 +12,7 @@ import numpy as np
 import rdkit
 from mmcif import parse_mmcif
 from p_tqdm import p_umap
-from redis import Redis
+# from redis import Redis
 from tqdm import tqdm
 
 from boltz.data.filter.static.filter import StaticFilter
@@ -252,7 +252,7 @@ def process(args) -> None:
 
     # Load clusters
     with Path(args.clusters).open("r") as f:
-        clusters: dict[str, str] = json.load(f)
+        clusters: dict[str, str] = {} # json.load(f)
         clusters = {k.lower(): v.lower() for k, v in clusters.items()}
 
     # Load filters
@@ -269,7 +269,9 @@ def process(args) -> None:
     rdkit.Chem.SetDefaultPickleProperties(pickle_option)
 
     # Load shared data from redis
-    resource = Resource(host=args.redis_host, port=args.redis_port)
+    # resource = Resource(host=args.redis_host, port=args.redis_port)
+    with open('ccd/ccd.pkl', 'rb') as f:
+        resource = pickle.load(f)
 
     # Get data points
     print("Fetching data...")
@@ -278,6 +280,8 @@ def process(args) -> None:
     # Check if we can run in parallel
     max_processes = multiprocessing.cpu_count()
     num_processes = max(1, min(args.num_processes, max_processes, len(data)))
+    
+    num_processes = 1
     parallel = num_processes > 1
 
     # Run processing

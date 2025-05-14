@@ -1,6 +1,13 @@
 # preprocessing
 scripts/process/ccd/*
+scripts/process/clustering/*
+scripts/process/output/*
+scripts/process/symmetry.pkl
 boltz_results_ligand/*
+original-data/*
+cifs-tests/*
+.boltz-model/*
+scripts/process/pdb_seqres.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

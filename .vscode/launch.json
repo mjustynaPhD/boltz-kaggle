@@ -15,6 +15,23 @@
                 "--pdbs-dir", "/home/mjustyna/data/rna-solo/",
                 "--outdir", "./ccd"
             ]
+        },
+        {
+            "name": "Run Current file",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+        },
+        {
+            "name": "Extract fasta",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/extract_fasta.py",
+            "console": "integratedTerminal",
+            "args": [
+            ]
         }
     ]
+    
 }

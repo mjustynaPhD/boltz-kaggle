@@ -12,8 +12,8 @@ trainer:
 #   project: boltz
 #   entity: boltz
 
-output: SET_PATH_HERE
-pretrained: PATH_TO_CHECKPOINT_FILE
+output: new-output/
+pretrained: /home/mjustyna/boltz-kaggle/.boltz-model/boltz1_no_PairFormer.ckpt
 resume: null
 disable_checkpoint: false
 matmul_precision: null
@@ -22,7 +22,7 @@ save_top_k: -1
 data:
   datasets:
     - _target_: boltz.data.module.training.DatasetConfig
-      target_dir: PATH_TO_TARGETS_DIR
+      target_dir: /home/mjustyna/boltz-kaggle/scripts/process/ccd/
       msa_dir: PATH_TO_MSA_DIR
       prob: 1.0
       sampler:
@@ -48,7 +48,7 @@ data:
   featurizer:
     _target_: boltz.data.feature.featurizer.BoltzFeaturizer
 
-  symmetries: PATH_TO_SYMMETRY_FILE
+  symmetries: /home/mjustyna/boltz-kaggle/scripts/process/symmetry.pkl
   max_tokens: 512
   max_atoms: 4608
   max_seqs: 2048
