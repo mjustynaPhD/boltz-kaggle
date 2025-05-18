@@ -89,12 +89,14 @@ def train(raw_config: str, args: list[str]) -> None:  # noqa: C901, PLR0912, PLR
 
     """
     # Load the configuration
+    print("Loading config from", raw_config)
     raw_config = omegaconf.OmegaConf.load(raw_config)
 
     # Apply input arguments
     args = omegaconf.OmegaConf.from_dotlist(args)
     raw_config = omegaconf.OmegaConf.merge(raw_config, args)
 
+    print("Config after applying command line arguments:")
     # Instantiate the task
     cfg = hydra.utils.instantiate(raw_config)
     cfg = TrainConfig(**cfg)
@@ -232,6 +234,7 @@ def train(raw_config: str, args: list[str]) -> None:  # noqa: C901, PLR0912, PLR
 
 
 if __name__ == "__main__":
+    print("Running training script")
     arg1 = sys.argv[1]
     arg2 = sys.argv[2:]
     train(arg1, arg2)

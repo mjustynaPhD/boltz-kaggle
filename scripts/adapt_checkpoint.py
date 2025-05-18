@@ -3,6 +3,7 @@ from dataclasses import asdict
 import hydra
 import omegaconf
 import torch
+
 from train.train import TrainConfig, DataConfig
 
 from boltz.main import BoltzDiffusionParams
@@ -24,7 +25,15 @@ for key, value in checkpoint["state_dict"].items():
 # Save the modified state_dict to a new file
 print("Saving modified checkpoint")
 new_checkpoint_path = "../.boltz-model/boltz1_no_PairFormer.ckpt"
-torch.save(new_state_dict, new_checkpoint_path)
+# save checkpoint using pytorch lightning
+out_dict = {}
+for key in checkpoint.keys():
+    if key == "state_dict":
+        out_dict['state_dict'] = new_state_dict
+    out_dict[key] = checkpoint[key]
+
+
+torch.save(out_dict, new_checkpoint_path)
 print(f"Checkpoint saved to {new_checkpoint_path}")
 
 recycling_steps: int = 3

@@ -112,12 +112,12 @@ def load_input(record: Record, target_dir: Path, msa_dir: Path) -> Input:
     )
 
     msas = {}
-    for chain in record.chains:
-        msa_id = chain.msa_id
-        # Load the MSA for this chain, if any
-        if msa_id != -1 and msa_id != "":
-            msa = np.load(msa_dir / f"{msa_id}.npz")
-            msas[chain.chain_id] = MSA(**msa)
+    # for chain in record.chains:
+    #     msa_id = chain.msa_id
+    #     # Load the MSA for this chain, if any
+    #     if msa_id != -1 and msa_id != "":
+    #         msa = np.load(msa_dir / f"{msa_id}.npz")
+    #         msas[chain.chain_id] = MSA(**msa)
 
     return Input(structure, msas)
 

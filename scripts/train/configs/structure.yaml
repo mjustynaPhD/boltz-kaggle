@@ -13,7 +13,7 @@ trainer:
 #   entity: boltz
 
 output: new-output/
-pretrained: /home/mjustyna/boltz-kaggle/.boltz-model/boltz1_no_PairFormer.ckpt
+pretrained: /mnt/storage_3/home/mjustyna/pl0404-01/scratch/mjustyna/boltz-kaggle/.boltz-model/boltz1_no_PairFormer.ckpt
 resume: null
 disable_checkpoint: false
 matmul_precision: null
@@ -22,7 +22,7 @@ save_top_k: -1
 data:
   datasets:
     - _target_: boltz.data.module.training.DatasetConfig
-      target_dir: /home/mjustyna/boltz-kaggle/scripts/process/ccd/
+      target_dir: /mnt/storage_3/home/mjustyna/pl0404-01/scratch/mjustyna/boltz-data/rcsb_processed_targets/
       msa_dir: PATH_TO_MSA_DIR
       prob: 1.0
       sampler:
@@ -48,7 +48,7 @@ data:
   featurizer:
     _target_: boltz.data.feature.featurizer.BoltzFeaturizer
 
-  symmetries: /home/mjustyna/boltz-kaggle/scripts/process/symmetry.pkl
+  symmetries: /mnt/storage_3/home/mjustyna/pl0404-01/scratch/mjustyna/boltz-kaggle/scripts/process/symmetry.pkl
   max_tokens: 512
   max_atoms: 4608
   max_seqs: 2048
@@ -157,6 +157,7 @@ model:
     lr_start_decay_after_n_steps: 50000
     lr_decay_every_n_steps: 50000
     lr_decay_factor: 0.95
+    symmetry_correction: true
 
   validation_args:
     recycling_steps: 3
