@@ -198,7 +198,7 @@ class Boltz1(LightningModule):
         #         fullgraph=False,
         #     )
 
-        self.seq_embedder = SequenceEmbedder(token_z)
+        self.rna_language_model = SequenceEmbedder(token_z)
 
         # Output modules
         use_accumulate_token_repr = confidence_prediction and "use_s_diffusion" in confidence_model_args and confidence_model_args["use_s_diffusion"]
@@ -263,12 +263,13 @@ class Boltz1(LightningModule):
         run_confidence_sequentially: bool = False,
     ) -> dict[str, Tensor]:
         dict_out = {}
+        print(feats.keys())
 
         # Compute input embeddings
         with torch.set_grad_enabled(
             self.training and self.structure_prediction_training
         ):
-            s_inputs = self.input_embedder(feats)
+            s_inputs = self.input_embedder(feats) # original input embedding remains unchanged
 
             # Initialize the sequence and pairwise embeddings
             s_init = self.s_init(s_inputs)
@@ -303,8 +304,13 @@ class Boltz1(LightningModule):
                     z = z_init + self.z_recycle(self.z_norm(z))
                     
 
-                    # Here goes RNA-language model
-                    # z = z + self.rna_language_model(z, s_inputs, feats)
+                    # Here goes RNA-language model -- replace MSA and pairformer with language model
+                    
+                    # z = z + self.rna_language_model(feats["res_type"])
+                    
+                    # should s be predicted as well??
+                    # s, z = self.rna_language_model(s, z, feats["res_type"]) # s = s+ pred1; z=z+ pred2
+
 
                     # Compute pairwise stack
                     # if not self.no_msa:
@@ -518,27 +524,27 @@ class Boltz1(LightningModule):
         lr = self.trainer.optimizers[0].param_groups[0]["lr"]
         self.log("lr", lr, prog_bar=False)
 
-        self.log(
-            "train/grad_norm_msa_module",
-            self.gradient_norm(self.msa_module),
-            prog_bar=False,
-        )
-        self.log(
-            "train/param_norm_msa_module",
-            self.parameter_norm(self.msa_module),
-            prog_bar=False,
-        )
+        # self.log(
+        #     "train/grad_norm_msa_module",
+        #     self.gradient_norm(self.msa_module),
+        #     prog_bar=False,
+        # )
+        # self.log(
+        #     "train/param_norm_msa_module",
+        #     self.parameter_norm(self.msa_module),
+        #     prog_bar=False,
+        # )
 
-        self.log(
-            "train/grad_norm_pairformer_module",
-            self.gradient_norm(self.pairformer_module),
-            prog_bar=False,
-        )
-        self.log(
-            "train/param_norm_pairformer_module",
-            self.parameter_norm(self.pairformer_module),
-            prog_bar=False,
-        )
+        # self.log(
+        #     "train/grad_norm_pairformer_module",
+        #     self.gradient_norm(self.pairformer_module),
+        #     prog_bar=False,
+        # )
+        # self.log(
+        #     "train/param_norm_pairformer_module",
+        #     self.parameter_norm(self.pairformer_module),
+        #     prog_bar=False,
+        # )
 
         self.log(
             "train/grad_norm_structure_module",

@@ -124,8 +124,8 @@ model:
     activation_checkpointing: true
     offload_to_cpu: false
 
-  confidence_prediction: true
-  confidence_imitate_trunk: true # added missing param
+  confidence_prediction: false
+  confidence_imitate_trunk: false # added missing param
   confidence_model_args:
     num_dist_bins: 64
     max_dist: 22
@@ -157,13 +157,13 @@ model:
     lr_start_decay_after_n_steps: 50000
     lr_decay_every_n_steps: 50000
     lr_decay_factor: 0.95
-    symmetry_correction: true
+    symmetry_correction: false
 
   validation_args:
     recycling_steps: 3
     sampling_steps: 200
     diffusion_samples: 5
-    symmetry_correction: true
+    symmetry_correction: false
     run_confidence_sequentially: false
 
   diffusion_process_args:

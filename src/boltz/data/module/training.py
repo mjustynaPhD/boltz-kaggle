@@ -101,6 +101,7 @@ def load_input(record: Record, target_dir: Path, msa_dir: Path) -> Input:
     """
     # Load the structure
     structure = np.load(target_dir / "structures" / f"{record.id}.npz")
+    # residue id structure['residues'][0] -> This can be converted into a list that will be a sequence.
     structure = Structure(
         atoms=structure["atoms"],
         bonds=structure["bonds"],
